@@ -1,0 +1,1 @@
+0 10 * * 7 /bin/sh /home/domain/user/work/collect_configs/run_commands.sh > /home/domain/user/work/collect_configs/cron_log.txt

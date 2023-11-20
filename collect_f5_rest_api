@@ -1,0 +1,47 @@
+import requests #pip install requests
+import json #pip install json
+
+# Define your BIG-IP system's details
+bigip = "1.1.1.1"
+username = "admin" #works only with admin user
+password = "xxx"
+
+# Define the API endpoint
+token_value = "NONE"
+token_page = f"https://{bigip}/mgmt/shared/authn/login"
+net_page = f"https://{bigip}/mgmt/tm/net/self"
+route_page = f"https://{bigip}/mgmt/tm/net/route"
+
+# Define the payload GET token
+payload = {
+    "username": username,
+    "password": password,
+    "loginProviderName": "tmos"
+}
+
+
+# Make the API request to get token
+response_token = requests.post(token_page, data=json.dumps(payload), verify=False)
+
+data = json.loads(response_token.text)
+
+token_value = data["token"]["token"] #parse json output to get the token value
+print(token_value)
+print("=======================================")
+
+# Define the payload GET outputs
+headers = {
+    "X-F5-Auth-Token": token_value
+}
+
+response = requests.get(net_page, headers=headers, verify=False) #get interfaces
+response1 = requests.get(route_page, headers=headers, verify=False) #get routes
+print("response is")
+print(response)
+print("++++++++++++++++++++++++++")
+# Print the response
+data_net = json.loads(response.text)
+data_route = json.loads(response1.text)
+
+print(data_net)
+print(data_route)

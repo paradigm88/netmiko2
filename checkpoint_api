@@ -1,0 +1,45 @@
+import requests, json
+
+def api_call(ip_addr, port, command, json_payload, sid):
+    url = 'https://' + ip_addr + ':' + str(port) + '/gaia_api/' + command
+    if sid == '':
+        request_headers = {'Content-Type' : 'application/json' }
+    else:
+        request_headers = {'Content-Type' : 'application/json', 'X-chkp-sid' : sid}
+    r = requests.post(url,data=json.dumps(json_payload), headers=request_headers, verify=False)
+    return r.json()
+
+def api_get(ip_addr, command, sid):
+    url = 'https://' + ip_addr + '/web_api/' + command
+    print(url)
+    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+    if sid == '':
+        request_headers = {'Content-Type' : 'application/json' }
+    else:
+        request_headers = {'Content-Type' : 'application/json', 'X-chkp-sid' : sid}
+    r = requests.get(url, headers=request_headers, verify=False)
+    return r.json()
+
+def login(user,password):
+    payload = {'user':user, 'password' : password}
+    response = api_call('192.168.65.2', 443, 'login',payload, '')
+    return response["sid"]
+
+sid = login('admin','xxx')
+
+print("session id: " + sid)
+
+##############
+##functions###
+
+#set_interface_data = {'name':'eth1', 'ipv4-address':'192.168.1.1', 'ipv4-mask-length':'24'}
+#set_interface_result = api_call('192.168.65.2', 443,'set-physical-interface', set_interface_data ,sid)
+#print(json.dumps(set_interface_result))
+
+
+hostname = api_call('192.168.65.2', 443,"show-hostname", {},sid)
+print(json.dumps(hostname))
+##############
+
+logout_result = api_call('192.168.65.2', 443,"logout", {},sid)
+print("logout result: " + json.dumps(logout_result))

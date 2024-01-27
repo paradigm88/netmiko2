@@ -1,0 +1,40 @@
+import requests
+import json
+
+# Replace with your APIC IP, username, and password
+APIC_IP = 'your_apic_ip'
+USERNAME = 'your_username'
+PASSWORD = 'your_password'
+
+# URLs for the API calls
+url1 = f"https://{APIC_IP}/api/class/fvEpP.json"
+url2 = f"https://{APIC_IP}/api/class/fvSubnet.json"
+
+# Authenticate to the APIC
+auth_url = f"https://{APIC_IP}/api/aaaLogin.json"
+auth_data = {
+    "aaaUser": {
+        "attributes": {
+            "name": USERNAME,
+            "pwd": PASSWORD
+        }
+    }
+}
+response = requests.post(auth_url, json=auth_data, verify=False)
+
+# If authentication is successful, the APIC returns a token in the response
+if response.status_code == 200:
+    token = response.json()['imdata'][0]['aaaLogin']['attributes']['token']
+
+    # Use the token in the headers for subsequent API calls
+    headers = {"Cookie": f"APIC-cookie={token}"}
+
+    # Make the API calls and write the responses to a file
+    with open('output.json', 'w') as f:
+        response = requests.get(url1, headers=headers, verify=False)
+        json.dump(response.json(), f)
+        f.write('\n')
+        response = requests.get(url2, headers=headers, verify=False)
+        json.dump(response.json(), f)
+else:
+    print("Authentication failed")

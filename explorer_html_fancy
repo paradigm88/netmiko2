@@ -30,18 +30,18 @@
                 <table class="table table-bordered table-striped">
                     <thead class="thead-dark">
                         <tr>
-                            <th>Type</th>
-                            <th>Name</th>
+                            <th>Path</th>
                         </tr>
                     </thead>
                     <tbody>
                         <!-- Folders -->
                         {% for folder in folders %}
                         <tr>
-                            <td><span class="badge badge-primary">Folder</span></td>
                             <td>
                                 <form method="POST" action="/navigate" style="display:inline;">
-                                    <button type="submit" name="folder" value="{{ folder }}" class="btn btn-link">{{ folder }}</button>
+                                    <button type="submit" name="folder" value="{{ folder }}" class="btn btn-link font-weight-bold">
+                                        {{ current_path }}/{{ folder }}
+                                    </button>
                                     <input type="hidden" name="action" value="enter">
                                 </form>
                             </td>
@@ -50,10 +50,11 @@
                         <!-- Files -->
                         {% for file in files %}
                         <tr>
-                            <td><span class="badge badge-secondary">File</span></td>
                             <td>
                                 <form method="POST" action="/open" style="display:inline;">
-                                    <button type="submit" name="file" value="{{ file }}" class="btn btn-link">{{ file }}</button>
+                                    <button type="submit" name="file" value="{{ file }}" class="btn btn-link">
+                                        {{ current_path }}/{{ file }}
+                                    </button>
                                 </form>
                             </td>
                         </tr>

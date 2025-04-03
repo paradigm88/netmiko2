@@ -1,0 +1,155 @@
+import os
+import time
+from flask import Flask, render_template, request, send_file
+
+app = Flask(__name__)
+
+# Keep track of the current path
+current_path = os.getcwd()
+
+@app.route('/')
+def index():
+    global current_path
+    items = []
+    
+    # Get contents of the current directory
+    for entry in os.scandir(current_path):
+        # Collect file/folder name and creation date
+        stat_info = os.stat(entry.path)
+        creation_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(stat_info.st_ctime))
+        items.append({
+            "name": entry.name,
+            "is_folder": entry.is_dir(),
+            "creation_date": creation_date
+        })
+    
+    # Pass the contents to the HTML template
+    return render_template('file_explorer.html', items=items, current_path=current_path)
+
+@app.route('/navigate', methods=['POST'])
+def navigate():
+    global current_path
+    selected_folder = request.form.get('folder')
+    action = request.form.get('action')
+    
+    # Navigate into the selected folder
+    if action == "enter":
+        new_path = os.path.join(current_path, selected_folder)
+        if os.path.exists(new_path) and os.path.isdir(new_path):
+            current_path = new_path
+
+    # Go back one step in the folder tree
+    elif action == "back":
+        parent_path = os.path.dirname(current_path)
+        current_path = parent_path
+
+    # Navigate back to the root directory
+    elif action == "root":
+        current_path = os.getcwd()
+    
+    # Refresh contents based on the updated path
+    items = []
+    for entry in os.scandir(current_path):
+        # Collect file/folder name and creation date
+        stat_info = os.stat(entry.path)
+        creation_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(stat_info.st_ctime))
+        items.append({
+            "name": entry.name,
+            "is_folder": entry.is_dir(),
+            "creation_date": creation_date
+        })
+    
+    return render_template('file_explorer.html', items=items, current_path=current_path)
+
+@app.route('/open', methods=['POST'])
+def open_file():
+    global current_path
+    selected_file = request.form.get('file')
+    file_path = os.path.join(current_path, selected_file)
+    
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=False)
+    else:
+        return f"File {selected_file} not found!", 404
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+    ==============
+    ==============
+    ==============
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-primary text-center">File Explorer</h1>
+        <div class="card">
+            <!-- Current Directory Path -->
+            <div class="card-header bg-info text-white">
+                <h5>Current Directory Path:</h5>
+                <p>{{ current_path }}</p>
+            </div>
+            <div class="card-body">
+                <!-- Navigation buttons -->
+                <div class="mb-3">
+                    <form method="POST" action="/navigate" style="display:inline;">
+                        <button type="submit" class="btn btn-danger" name="action" value="root">Go to Root</button>
+                    </form>
+                    <form method="POST" action="/navigate" style="display:inline;">
+                        <button type="submit" class="btn btn-warning" name="action" value="back">Go Back</button>
+                    </form>
+                </div>
+                
+                <!-- Folders and Files Table -->
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Creation Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Items: Folders and Files -->
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                {% if item.is_folder %}
+                                <!-- Folder: Bold and clickable -->
+                                <form method="POST" action="/navigate" style="display:inline;">
+                                    <button type="submit" name="folder" value="{{ item.name }}" class="btn btn-link font-weight-bold">
+                                        {{ item.name }}
+                                    </button>
+                                    <input type="hidden" name="action" value="enter">
+                                </form>
+                                {% else %}
+                                <!-- File: Normal clickable -->
+                                <form method="POST" action="/open" style="display:inline;">
+                                    <button type="submit" name="file" value="{{ item.name }}" class="btn btn-link">
+                                        {{ item.name }}
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.creation_date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

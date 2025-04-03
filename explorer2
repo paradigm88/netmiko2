@@ -1,0 +1,96 @@
+import os
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+# Keep track of the current path
+current_path = os.getcwd()
+
+@app.route('/')
+def index():
+    global current_path
+    folders = []
+    files = []
+    
+    # Get the contents of the current directory
+    for entry in os.scandir(current_path):
+        if entry.is_dir():
+            folders.append(entry.name)
+        else:
+            files.append(entry.name)
+    
+    # Pass the contents to the HTML template
+    return render_template('file_explorer.html', folders=folders, files=files, current_path=current_path)
+
+@app.route('/navigate', methods=['POST'])
+def navigate():
+    global current_path
+    selected_folder = request.form.get('folder')
+    action = request.form.get('action')
+    
+    # Navigate into the selected folder
+    if action == "enter":
+        new_path = os.path.join(current_path, selected_folder)
+        if os.path.exists(new_path) and os.path.isdir(new_path):
+            current_path = new_path
+
+    # Navigate back to the root directory
+    elif action == "root":
+        current_path = os.getcwd()
+    
+    # Refresh contents based on the updated path
+    folders = []
+    files = []
+    for entry in os.scandir(current_path):
+        if entry.is_dir():
+            folders.append(entry.name)
+        else:
+            files.append(entry.name)
+    
+    return render_template('file_explorer.html', folders=folders, files=files, current_path=current_path)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+    ===================
+    ===================
+    ===================
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+</head>
+<body>
+    <h1>File Explorer</h1>
+    <h2>Current Directory:</h2>
+    <p>{{ current_path }}</p>
+
+    <h2>Folders:</h2>
+    <ul>
+        {% for folder in folders %}
+        <li>
+            <form method="POST" action="/navigate" style="display:inline;">
+                <button type="submit" name="folder" value="{{ folder }}">{{ folder }}</button>
+                <input type="hidden" name="action" value="enter">
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Files:</h2>
+    <ul>
+        {% for file in files %}
+        <li>{{ file }}</li>
+        {% endfor %}
+    </ul>
+
+    <form method="POST" action="/navigate" style="margin-top:20px;">
+        <button type="submit" name="action" value="root">Go to Root</button>
+    </form>
+</body>
+</html>

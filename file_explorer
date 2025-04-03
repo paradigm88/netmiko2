@@ -1,0 +1,78 @@
+import os
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    # Define the root directory for exploration
+    root_dir = os.getcwd()
+    folders = []
+    files = []
+    
+    # Get contents of the directory
+    for entry in os.scandir(root_dir):
+        if entry.is_dir():
+            folders.append(entry.name)
+        else:
+            files.append(entry.name)
+    
+    # Pass the contents to the HTML template
+    return render_template('file_explorer.html', folders=folders, files=files)
+
+@app.route('/navigate', methods=['POST'])
+def navigate():
+    # Get the selected folder from the form
+    selected_folder = request.form['folder']
+    new_path = os.path.join(os.getcwd(), selected_folder)
+    
+    # Check if the path exists and update content
+    folders = []
+    files = []
+    if os.path.exists(new_path):
+        for entry in os.scandir(new_path):
+            if entry.is_dir():
+                folders.append(entry.name)
+            else:
+                files.append(entry.name)
+    
+    return render_template('file_explorer.html', folders=folders, files=files)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+===========================================
+===========================================
+===========================================
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+</head>
+<body>
+    <h1>File Explorer</h1>
+
+    <h2>Folders:</h2>
+    <ul>
+        {% for folder in folders %}
+        <li>
+            <form method="POST" action="/navigate" style="display:inline;">
+                <button type="submit" name="folder" value="{{ folder }}">{{ folder }}</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Files:</h2>
+    <ul>
+        {% for file in files %}
+        <li>{{ file }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

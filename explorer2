@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 
 app = Flask(__name__)
 
@@ -12,7 +12,7 @@ def index():
     folders = []
     files = []
     
-    # Get the contents of the current directory
+    # Get contents of the current directory
     for entry in os.scandir(current_path):
         if entry.is_dir():
             folders.append(entry.name)
@@ -34,6 +34,11 @@ def navigate():
         if os.path.exists(new_path) and os.path.isdir(new_path):
             current_path = new_path
 
+    # Go back one step in the folder tree
+    elif action == "back":
+        parent_path = os.path.dirname(current_path)
+        current_path = parent_path
+
     # Navigate back to the root directory
     elif action == "root":
         current_path = os.getcwd()
@@ -48,6 +53,17 @@ def navigate():
             files.append(entry.name)
     
     return render_template('file_explorer.html', folders=folders, files=files, current_path=current_path)
+
+@app.route('/open', methods=['POST'])
+def open_file():
+    global current_path
+    selected_file = request.form.get('file')
+    file_path = os.path.join(current_path, selected_file)
+    
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=False)
+    else:
+        return f"File {selected_file} not found!", 404
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -85,12 +101,19 @@ if __name__ == '__main__':
     <h2>Files:</h2>
     <ul>
         {% for file in files %}
-        <li>{{ file }}</li>
+        <li>
+            <form method="POST" action="/open" style="display:inline;">
+                <button type="submit" name="file" value="{{ file }}">{{ file }}</button>
+            </form>
+        </li>
         {% endfor %}
     </ul>
 
     <form method="POST" action="/navigate" style="margin-top:20px;">
         <button type="submit" name="action" value="root">Go to Root</button>
+    </form>
+    <form method="POST" action="/navigate" style="margin-top:20px;">
+        <button type="submit" name="action" value="back">Go Back</button>
     </form>
 </body>
 </html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-primary text-center">File Explorer</h1>
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5>Current Directory:</h5>
+                <p>{{ current_path }}</p>
+            </div>
+            <div class="card-body">
+                <!-- Navigation buttons -->
+                <div class="mb-3">
+                    <form method="POST" action="/navigate" style="display:inline;">
+                        <button type="submit" class="btn btn-danger" name="action" value="root">Go to Root</button>
+                    </form>
+                    <form method="POST" action="/navigate" style="display:inline;">
+                        <button type="submit" class="btn btn-warning" name="action" value="back">Go Back</button>
+                    </form>
+                </div>
+                
+                <!-- Folders and Files Table -->
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Folders -->
+                        {% for folder in folders %}
+                        <tr>
+                            <td><span class="badge badge-primary">Folder</span></td>
+                            <td>{{ folder }}</td>
+                            <td>
+                                <form method="POST" action="/navigate" style="display:inline;">
+                                    <button type="submit" class="btn btn-success" name="folder" value="{{ folder }}">Open</button>
+                                    <input type="hidden" name="action" value="enter">
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <!-- Files -->
+                        {% for file in files %}
+                        <tr>
+                            <td><span class="badge badge-secondary">File</span></td>
+                            <td>{{ file }}</td>
+                            <td>
+                                <form method="POST" action="/open" style="display:inline;">
+                                    <button type="submit" class="btn btn-info" name="file" value="{{ file }}">Open</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

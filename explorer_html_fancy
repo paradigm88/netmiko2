@@ -11,8 +11,9 @@
     <div class="container mt-5">
         <h1 class="text-primary text-center">File Explorer</h1>
         <div class="card">
+            <!-- Current Directory Path -->
             <div class="card-header bg-info text-white">
-                <h5>Current Directory:</h5>
+                <h5>Current Directory Path:</h5>
                 <p>{{ current_path }}</p>
             </div>
             <div class="card-body">
@@ -31,16 +32,22 @@
                     <thead class="thead-dark">
                         <tr>
                             <th>Path</th>
+                            <th>Name</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Path (Row 1, spanning across all) -->
+                        <tr>
+                            <td colspan="2"><strong>{{ current_path }}</strong></td>
+                        </tr>
                         <!-- Folders -->
                         {% for folder in folders %}
                         <tr>
+                            <td><span class="badge badge-primary">Folder</span></td>
                             <td>
                                 <form method="POST" action="/navigate" style="display:inline;">
                                     <button type="submit" name="folder" value="{{ folder }}" class="btn btn-link font-weight-bold">
-                                        {{ current_path }}/{{ folder }}
+                                        {{ folder }}
                                     </button>
                                     <input type="hidden" name="action" value="enter">
                                 </form>
@@ -50,10 +57,11 @@
                         <!-- Files -->
                         {% for file in files %}
                         <tr>
+                            <td><span class="badge badge-secondary">File</span></td>
                             <td>
                                 <form method="POST" action="/open" style="display:inline;">
                                     <button type="submit" name="file" value="{{ file }}" class="btn btn-link">
-                                        {{ current_path }}/{{ file }}
+                                        {{ file }}
                                     </button>
                                 </form>
                             </td>

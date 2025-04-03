@@ -32,7 +32,6 @@
                         <tr>
                             <th>Type</th>
                             <th>Name</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,10 +39,9 @@
                         {% for folder in folders %}
                         <tr>
                             <td><span class="badge badge-primary">Folder</span></td>
-                            <td>{{ folder }}</td>
                             <td>
                                 <form method="POST" action="/navigate" style="display:inline;">
-                                    <button type="submit" class="btn btn-success" name="folder" value="{{ folder }}">Open</button>
+                                    <button type="submit" name="folder" value="{{ folder }}" class="btn btn-link">{{ folder }}</button>
                                     <input type="hidden" name="action" value="enter">
                                 </form>
                             </td>
@@ -53,10 +51,9 @@
                         {% for file in files %}
                         <tr>
                             <td><span class="badge badge-secondary">File</span></td>
-                            <td>{{ file }}</td>
                             <td>
                                 <form method="POST" action="/open" style="display:inline;">
-                                    <button type="submit" class="btn btn-info" name="file" value="{{ file }}">Open</button>
+                                    <button type="submit" name="file" value="{{ file }}" class="btn btn-link">{{ file }}</button>
                                 </form>
                             </td>
                         </tr>

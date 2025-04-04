@@ -1,0 +1,61 @@
+from flask import Flask, render_template, request
+import os
+
+app = Flask(__name__)
+
+# Path to the parent folder containing subfolders
+BASE_FOLDER = "your_base_directory_here"
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    folders = [f for f in os.listdir(BASE_FOLDER) if os.path.isdir(os.path.join(BASE_FOLDER, f))]
+    files_content = {}
+
+    selected_folder = None
+    if request.method == "POST":
+        selected_folder = request.form.get("folder")
+        folder_path = os.path.join(BASE_FOLDER, selected_folder)
+        text_files = [f for f in os.listdir(folder_path) if f.endswith(".txt")]
+        
+        for text_file in text_files:
+            file_path = os.path.join(folder_path, text_file)
+            with open(file_path, "r") as file:
+                files_content[text_file] = file.read()
+
+    return render_template("index.html", folders=folders, selected_folder=selected_folder, files_content=files_content)
+
+===================================
+===================================
+===================================
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Folder Viewer</title>
+</head>
+<body>
+    <h1>Select a Folder</h1>
+    <form method="POST" action="/">
+        <label for="folder">Choose a folder:</label>
+        <select name="folder" id="folder">
+            <option value="" disabled selected>Select a folder</option>
+            {% for folder in folders %}
+            <option value="{{ folder }}" {% if folder == selected_folder %}selected{% endif %}>
+                {{ folder }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if selected_folder %}
+    <h2>Contents of text files in "{{ selected_folder }}"</h2>
+    <form>
+        {% for filename, content in files_content.items %}
+        <label for="{{ filename }}">{{ filename }}</label>
+        <textarea id="{{ filename }}" rows="10" cols="50" readonly>{{ content }}</textarea><br>
+        {% endfor %}
+    </form>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,70 @@
+from flask import Flask, render_template, Response
+import subprocess
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/run-script')
+def run_script():
+    def generate():
+        process = subprocess.Popen(['python', 'script.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in iter(process.stdout.readline, ''):
+            yield f"data:{line}\n\n"
+        process.stdout.close()
+        process.wait()
+    return Response(generate(), mimetype='text/event-stream')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+========================================
+
+import time
+
+for i in range(1, 11):
+    print(f"Line {i} from script.py")
+    time.sleep(1)
+
+=========================================
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Script Runner</title>
+    <style>
+        #output {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            white-space: pre-wrap;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Run Script</h1>
+    <button onclick="runScript()">Run Script</button>
+    <div id="output"></div>
+
+    <script>
+        function runScript() {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = ''; // clear previous output
+
+            const eventSource = new EventSource('/run-script');
+            eventSource.onmessage = function(e) {
+                outputDiv.innerHTML += e.data + '\n';
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            };
+            eventSource.onerror = function() {
+                eventSource.close();
+            };
+        }
+    </script>
+</body>
+</html>
